@@ -1,0 +1,17 @@
+# GUI框架
+PyQt5==5.15.9
+
+# 文档处理
+python-docx==0.8.11
+openpyxl==3.1.0
+PyMuPDF==1.21.0
+puremagic==1.14
+
+# NLP与分析
+jieba==0.42.1
+snownlp==0.12.3
+wordcloud==1.8.1
+
+# 工具库
+Pillow==9.5.0
+chardet==5.1.0
