@@ -23,44 +23,46 @@ jobs:
     
     - name: 构建ARM64环境
       run: |
-        docker run --rm -v ${{ github.workspace }}:/workspace -w /workspace --platform linux/arm64 arm64v8/python:3.10 bash -c "apt-get update && apt-get install -y python3-venv && python3 -m venv portable-env && source portable-env/bin/activate && pip install --upgrade pip && pip install -r requirements.txt && cp main.py portable-env/ && cp requirements.txt portable-env/ && cp icon.png portable-env/ && cp -r core portable-env/ && cp -r modules portable-env/ && cp -r widgets portable-env/ && cp -r resources portable-env/ 2>/dev/null || true"
-    
-    - name: 创建启动脚本
-      run: |
-        echo '#!/bin/bash' > portable-env/start.sh
-        echo 'cd "$(dirname "$0")"' >> portable-env/start.sh
-        echo 'source bin/activate' >> portable-env/start.sh
-        echo 'python3 main.py' >> portable-env/start.sh
-        chmod +x portable-env/start.sh
-    
-    - name: 创建桌面快捷方式脚本
-      run: |
-        echo '#!/bin/bash' > portable-env/create-desktop.sh
-        echo 'DESKTOP_FILE=~/Desktop/材料管理系统.desktop' >> portable-env/create-desktop.sh
-        echo 'APP_DIR="$(cd "$(dirname "$0")" && pwd)"' >> portable-env/create-desktop.sh
-        echo 'cat > "$DESKTOP_FILE" << DESKTOP' >> portable-env/create-desktop.sh
-        echo '[Desktop Entry]' >> portable-env/create-desktop.sh
-        echo 'Name=材料管理系统' >> portable-env/create-desktop.sh
-        echo 'Comment=党政机关材料管理软件' >> portable-env/create-desktop.sh
-        echo 'Exec=$APP_DIR/start.sh' >> portable-env/create-desktop.sh
-        echo 'Icon=$APP_DIR/icon.png' >> portable-env/create-desktop.sh
-        echo 'Terminal=false' >> portable-env/create-desktop.sh
-        echo 'Type=Application' >> portable-env/create-desktop.sh
-        echo 'Categories=Office;Qt;' >> portable-env/create-desktop.sh
-        echo 'DESKTOP' >> portable-env/create-desktop.sh
-        echo 'chmod +x "$DESKTOP_FILE"' >> portable-env/create-desktop.sh
-        chmod +x portable-env/create-desktop.sh
-    
-    - name: 创建版本信息
-      run: |
-        echo "Version: 1.0.0" > portable-env/VERSION
-        echo "Build Date: $(date)" >> portable-env/VERSION
-        echo "Architecture: ARM64" >> portable-env/VERSION
-    
-    - name: 打包
-      run: |
-        tar -czf 材料管理系统-portable-arm64.tar.gz portable-env
-        ls -lh 材料管理系统-portable-arm64.tar.gz
+        docker run --rm -v ${{ github.workspace }}:/workspace -w /workspace --platform linux/arm64 arm64v8/python:3.10 bash -c "
+          apt-get update && \
+          apt-get install -y python3-venv && \
+          python3 -m venv portable-env && \
+          source portable-env/bin/activate && \
+          pip install --upgrade pip && \
+          pip install -r requirements.txt && \
+          cp main.py portable-env/ && \
+          cp requirements.txt portable-env/ && \
+          cp icon.png portable-env/ && \
+          cp -r core portable-env/ && \
+          cp -r modules portable-env/ && \
+          cp -r widgets portable-env/ && \
+          cp -r resources portable-env/ 2>/dev/null || true && \
+          echo '#!/bin/bash' > portable-env/start.sh && \
+          echo 'cd \"\$(dirname \"\$0\")\"' >> portable-env/start.sh && \
+          echo 'source bin/activate' >> portable-env/start.sh && \
+          echo 'python3 main.py' >> portable-env/start.sh && \
+          chmod +x portable-env/start.sh && \
+          echo '#!/bin/bash' > portable-env/create-desktop.sh && \
+          echo 'DESKTOP_FILE=~/Desktop/材料管理系统.desktop' >> portable-env/create-desktop.sh && \
+          echo 'APP_DIR=\"\$(cd \"\$(dirname \"\$0\")\" && pwd)\"' >> portable-env/create-desktop.sh && \
+          echo 'cat > \"\$DESKTOP_FILE\" << DESKTOP' >> portable-env/create-desktop.sh && \
+          echo '[Desktop Entry]' >> portable-env/create-desktop.sh && \
+          echo 'Name=材料管理系统' >> portable-env/create-desktop.sh && \
+          echo 'Comment=党政机关材料管理软件' >> portable-env/create-desktop.sh && \
+          echo 'Exec=\$APP_DIR/start.sh' >> portable-env/create-desktop.sh && \
+          echo 'Icon=\$APP_DIR/icon.png' >> portable-env/create-desktop.sh && \
+          echo 'Terminal=false' >> portable-env/create-desktop.sh && \
+          echo 'Type=Application' >> portable-env/create-desktop.sh && \
+          echo 'Categories=Office;Qt;' >> portable-env/create-desktop.sh && \
+          echo 'DESKTOP' >> portable-env/create-desktop.sh && \
+          echo 'chmod +x \"\$DESKTOP_FILE\"' >> portable-env/create-desktop.sh && \
+          chmod +x portable-env/create-desktop.sh && \
+          echo 'Version: 1.0.0' > portable-env/VERSION && \
+          echo \"Build Date: \$(date)\" >> portable-env/VERSION && \
+          echo 'Architecture: ARM64' >> portable-env/VERSION && \
+          tar -czf 材料管理系统-portable-arm64.tar.gz portable-env && \
+          ls -lh 材料管理系统-portable-arm64.tar.gz
+        "
     
     - name: 上传构建产物
       uses: actions/upload-artifact@v4
