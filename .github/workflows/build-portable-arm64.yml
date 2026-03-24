@@ -25,11 +25,11 @@ jobs:
       run: |
         docker run --rm -v ${{ github.workspace }}:/workspace -w /workspace --platform linux/arm64 arm64v8/python:3.10 bash -c "
           apt-get update && \
-          apt-get install -y python3-venv && \
-          python3 -m venv portable-env && \
+          apt-get install -y python3-venv python3-pyqt5 python3-pyqt5.qtwebengine && \
+          python3 -m venv --system-site-packages portable-env && \
           source portable-env/bin/activate && \
           pip install --upgrade pip && \
-          pip install -r requirements.txt && \
+          pip install jieba wordcloud python-docx openpyxl PyPDF2 pdfplumber chardet && \
           cp main.py portable-env/ && \
           cp requirements.txt portable-env/ && \
           cp icon.png portable-env/ && \
@@ -60,6 +60,7 @@ jobs:
           echo 'Version: 1.0.0' > portable-env/VERSION && \
           echo \"Build Date: \$(date)\" >> portable-env/VERSION && \
           echo 'Architecture: ARM64' >> portable-env/VERSION && \
+          echo '注意: 需要在UOS上安装系统PyQt5: sudo apt install python3-pyqt5 python3-pyqt5.qtwebengine' >> portable-env/VERSION && \
           tar -czf 材料管理系统-portable-arm64.tar.gz portable-env && \
           ls -lh 材料管理系统-portable-arm64.tar.gz
         "
