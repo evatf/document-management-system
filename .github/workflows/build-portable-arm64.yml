@@ -22,71 +22,72 @@ jobs:
       uses: docker/setup-buildx-action@v3
     
     - name: 构建ARM64环境
-      uses: docker/run-action@v1
-      with:
-        image: arm64v8/python:3.10
-        platforms: linux/arm64
-        run: |
-          # 安装系统依赖
-          apt-get update
-          apt-get install -y python3-venv
-          
-          # 创建虚拟环境
-          python3 -m venv portable-env
-          source portable-env/bin/activate
-          
-          # 安装Python依赖
-          pip install --upgrade pip
-          pip install -r requirements.txt
-          
-          # 复制项目文件
-          cp main.py portable-env/
-          cp requirements.txt portable-env/
-          cp icon.png portable-env/
-          cp -r core portable-env/
-          cp -r modules portable-env/
-          cp -r widgets portable-env/
-          cp -r resources portable-env/ 2>/dev/null || true
-          
-          # 创建启动脚本
-          cat > portable-env/start.sh << 'EOF'
-          #!/bin/bash
-          cd "$(dirname "$0")"
-          source bin/activate
-          python3 main.py
-          EOF
-          chmod +x portable-env/start.sh
-          
-          # 创建桌面快捷方式生成脚本
-          cat > portable-env/create-desktop.sh << 'EOF'
-          #!/bin/bash
-          DESKTOP_FILE=~/Desktop/材料管理系统.desktop
-          APP_DIR="$(cd "$(dirname "$0")" && pwd)"
-          
-          cat > "$DESKTOP_FILE" << DESKTOP
-          [Desktop Entry]
-          Name=材料管理系统
-          Comment=党政机关材料管理软件
-          Exec=$APP_DIR/start.sh
-          Icon=$APP_DIR/icon.png
-          Terminal=false
-          Type=Application
-          Categories=Office;Qt;
-          DESKTOP
-          
-          chmod +x "$DESKTOP_FILE"
-          echo "桌面快捷方式已创建：$DESKTOP_FILE"
-          EOF
-          chmod +x portable-env/create-desktop.sh
-          
-          # 创建版本信息
-          echo "Version: 1.0.0" > portable-env/VERSION
-          echo "Build Date: $(date)" >> portable-env/VERSION
-          echo "Architecture: ARM64" >> portable-env/VERSION
-          
-          # 打包
-          tar -czf 材料管理系统-portable-arm64.tar.gz portable-env
-          ls -lh 材料管理系统-portable-arm64.tar.gz
+      run: |
+        docker run --rm -v ${{ github.workspace }}:/workspace -w /workspace \
+          --platform linux/arm64 \
+          arm64v8/python:3.10 \
+          bash -c "
+            # 安装系统依赖
+            apt-get update
+            apt-get install -y python3-venv
+            
+            # 创建虚拟环境
+            python3 -m venv portable-env
+            source portable-env/bin/activate
+            
+            # 安装Python依赖
+            pip install --upgrade pip
+            pip install -r requirements.txt
+            
+            # 复制项目文件
+            cp main.py portable-env/
+            cp requirements.txt portable-env/
+            cp icon.png portable-env/
+            cp -r core portable-env/
+            cp -r modules portable-env/
+            cp -r widgets portable-env/
+            cp -r resources portable-env/ 2>/dev/null || true
+            
+            # 创建启动脚本
+            cat > portable-env/start.sh << 'EOF'
+#!/bin/bash
+cd \"\$(dirname \"\$0\")\"
+source bin/activate
+python3 main.py
+EOF
+            chmod +x portable-env/start.sh
+            
+            # 创建桌面快捷方式生成脚本
+            cat > portable-env/create-desktop.sh << 'EOF'
+#!/bin/bash
+DESKTOP_FILE=~/Desktop/材料管理系统.desktop
+APP_DIR=\"\$(cd \"\$(dirname \"\$0\")\" && pwd)\"
+
+cat > \"\$DESKTOP_FILE\" << DESKTOP
+[Desktop Entry]
+Name=材料管理系统
+Comment=党政机关材料管理软件
+Exec=\$APP_DIR/start.sh
+Icon=\$APP_DIR/icon.png
+Terminal=false
+Type=Application
+Categories=Office;Qt;
+DESKTOP
+
+chmod +x \"\$DESKTOP_FILE\"
+echo \"桌面快捷方式已创建：\$DESKTOP_FILE\"
+EOF
+            chmod +x portable-env/create-desktop.sh
+            
+            # 创建版本信息
+            echo 'Version: 1.0.0' > portable-env/VERSION
+            echo \"Build Date: \$(date)\" >> portable-env/VERSION
+            echo 'Architecture: ARM64' >> portable-env/VERSION
+            
+            # 打包
+            tar -czf 材料管理系统-portable-arm64.tar.gz portable-env
+            ls -lh 材料管理系统-portable-arm64.tar.gz
+          "
     
     - name: 上传构建产物
       uses: actions/upload-artifact@v4
@@ -94,35 +95,3 @@ jobs:
         name: portable-python-arm64
         path: 材料管理系统-portable-arm64.tar.gz
         retention-days: 30
-    
-    - name: 创建Release
-      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-      uses: softprops/action-gh-release@v1
-      with:
-        tag_name: v1.0.0-arm64
-        name: 材料管理系统 v1.0.0 (ARM64 Portable)
-        body: |
-          ## 材料管理系统 - ARM64便携版
-          
-          ### 下载说明
-          1. 下载 `材料管理系统-portable-arm64.tar.gz` 文件
-          2. 在UOS上解压：`tar -xzf 材料管理系统-portable-arm64.tar.gz`
-          3. 运行：`cd portable-env && ./start.sh`
-          
-          ### 创建桌面快捷方式
-          ```bash
-          cd portable-env
-          ./create-desktop.sh
-          ```
-          
-          ### 特点
-          - ✅ 完全离线运行
-          - ✅ 无需安装Python
-          - ✅ 解压即用
-          - ✅ 支持ARM64架构（飞腾、鲲鹏处理器）
-        files: |
-          材料管理系统-portable-arm64.tar.gz
-        draft: false
-        prerelease: false
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
